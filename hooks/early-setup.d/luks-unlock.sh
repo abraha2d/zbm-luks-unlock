@@ -81,10 +81,38 @@ luks_unlock() {
   fi
 }
 
+get_locked_partitions() {
+  mapfile -t partitions < <(lsblk -lnpo NAME,UUID,FSTYPE | awk '/crypto_LUKS/{print $1 "=" $2}')
+
+  for p in "${partitions[@]}"; do
+    IFS='=' read -r partition uuid <<< "$p"
+
+    # inspired by https://unix.stackexchange.com/a/302850/314569
+    # shellcheck disable=SC2144
+    test -b /dev/disk/by-id/dm-uuid-*"$(tr -d - <<<"$uuid")"* && continue
+
+    echo "${partition}=luks-${uuid}"
+    unset partition uuid
+  done
+}
+
 unlock_partitions() {
-  local partitions=($(lsblk -lpnf -o NAME,UUID,FSTYPE | awk '/crypto_LUKS/{print $1 "=luks-" $2}'))
+  mapfile -t partitions < <(get_locked_partitions)
+
+  for p in "${partitions[@]}"; do
+    IFS='=' read -r partition mapping <<< "$p"
+
+    zinfo "attempting automatic unlock of device ${partition}..."
+    clevis luks unlock -d "${partition}" >/dev/null 2>&1 &
+    unset partition mapping
+  done
+  wait
+
+  partitions=()
+  mapfile -t partitions < <(get_locked_partitions)
+
   if [ ${#partitions[@]} -eq 0 ]; then
-    zinfo "no encrypted luks partitions found, skipping unlock"
+    zinfo "no locked LUKS partitions found, skipping unlock"
     return 1
   fi
 

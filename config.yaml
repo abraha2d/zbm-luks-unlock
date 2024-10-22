@@ -1,0 +1,6 @@
+Kernel:
+  CommandLine: zfsbootmenu ro quiet splash init_on_alloc=0 loglevel=0
+Components:
+  Enabled: true
+EFI:
+  Enabled: true
