@@ -133,4 +133,5 @@ unlock_partitions() {
   done
 }
 
+plymouth display-message --text="Unlocking disks..."
 unlock_partitions

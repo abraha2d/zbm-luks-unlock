@@ -24,3 +24,5 @@ cd build
 meson setup .. --prefix=/usr
 ninja
 ninja install
+
+: >/usr/libexec/clevis-luks-unlocker

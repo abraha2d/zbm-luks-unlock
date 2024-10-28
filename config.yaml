@@ -1,5 +1,5 @@
 Kernel:
-  CommandLine: zfsbootmenu ro quiet splash init_on_alloc=0 loglevel=0
+  CommandLine: zfsbootmenu ro quiet splash zbm.timeout=5
 Components:
   Enabled: true
 EFI:
